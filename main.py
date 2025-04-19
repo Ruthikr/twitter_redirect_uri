@@ -27,8 +27,10 @@ async def auth_callback(request: Request):
         "client_id": CLIENT_ID,
         "client_secret": CLIENT_SECRET,
         "redirect_uri": TWITTER_REDIRECT_URI,
-        "code_verifier": "challenge",  # Should match the one used in authorize URL
+        "code_verifier": "challenge",
     }
+
+    print("Payload being sent:", payload)
 
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -36,8 +38,9 @@ async def auth_callback(request: Request):
 
     response = requests.post(
         "https://api.twitter.com/2/oauth2/token",
-        data=urlencode(payload),  # encode properly
+        data=urlencode(payload),
         headers=headers
     )
 
+    print("Response text:", response.text)
     return response.json()
