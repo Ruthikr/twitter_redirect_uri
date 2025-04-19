@@ -18,7 +18,6 @@ async def auth_callback(request: Request):
     if not code:
         return {"error": "Missing code from Twitter"}
 
-    # Step 2: Exchange code for access token (Twitter OAuth2)
     import requests
     response = requests.post(
         "https://api.twitter.com/2/oauth2/token",
@@ -27,9 +26,9 @@ async def auth_callback(request: Request):
             "code": code,
             "grant_type": "authorization_code",
             "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,  # Include it here instead
             "redirect_uri": TWITTER_REDIRECT_URI,
-            "code_verifier": "challenge",  # If you used PKCE
-        },
-        auth=(CLIENT_ID, CLIENT_SECRET)
+            "code_verifier": "challenge",
+        }
     )
     return response.json()
