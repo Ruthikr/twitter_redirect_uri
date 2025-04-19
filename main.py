@@ -14,21 +14,30 @@ def home():
 
 @app.get("/auth/callback")
 async def auth_callback(request: Request):
+    import requests
+    from urllib.parse import urlencode
+
     code = request.query_params.get("code")
     if not code:
         return {"error": "Missing code from Twitter"}
 
-    import requests
+    payload = {
+        "code": code,
+        "grant_type": "authorization_code",
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "redirect_uri": TWITTER_REDIRECT_URI,
+        "code_verifier": "challenge",  # Should match the one used in authorize URL
+    }
+
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+
     response = requests.post(
         "https://api.twitter.com/2/oauth2/token",
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-        data={
-            "code": code,
-            "grant_type": "authorization_code",
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,  # Include it here instead
-            "redirect_uri": TWITTER_REDIRECT_URI,
-            "code_verifier": "challenge",
-        }
+        data=urlencode(payload),  # encode properly
+        headers=headers
     )
+
     return response.json()
