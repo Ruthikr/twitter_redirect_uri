@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
 import os
+import requests
+from urllib.parse import urlencode
+from fastapi.responses import RedirectResponse
 
 app = FastAPI()
 
@@ -14,9 +16,6 @@ def home():
 
 @app.get("/auth/callback")
 async def auth_callback(request: Request):
-    import requests
-    from urllib.parse import urlencode
-
     code = request.query_params.get("code")
     if not code:
         return {"error": "Missing code from Twitter"}
@@ -25,22 +24,23 @@ async def auth_callback(request: Request):
         "code": code,
         "grant_type": "authorization_code",
         "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
         "redirect_uri": TWITTER_REDIRECT_URI,
-        "code_verifier": "challenge",
+        "code_verifier": "challenge",  # Should match the one used in authorize URL
     }
 
-    print("Payload being sent:", payload)
-
+    # Basic Auth header for client_secret (OAuth2 standard)
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
     }
 
+    # Adding Authorization header (Client credentials)
+    auth = (CLIENT_ID, CLIENT_SECRET)
+
     response = requests.post(
         "https://api.twitter.com/2/oauth2/token",
         data=urlencode(payload),
-        headers=headers
+        headers=headers,
+        auth=auth  # Basic Auth
     )
 
-    print("Response text:", response.text)
     return response.json()
